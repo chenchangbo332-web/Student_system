@@ -58,7 +58,7 @@ class StudentManager:
                 stu.age = int(input('输入新的年龄：'))
                 stu.phone = input('输入新的手机号：')
                 stu.desc = input('输入新的描述信息：')
-                print(f"学生{student_name}信息已删除")
+                print(f"学生{student_name}信息已修改")
                 break
             print(f"学生{student_name}未找到！")
 
@@ -72,7 +72,7 @@ class StudentManager:
             if stu.name == student_name:
                 print(stu)
                 break
-            print(f"学生{student_name}未找到！")
+        print(f"学生{student_name}未找到！")
 
     #根据学号找到学生，找不到就返回None
     def find_student_by_id(self, stu_id=None):
@@ -82,9 +82,9 @@ class StudentManager:
         for stu in self.stu_list:
             if stu.student_id==stu_id:
                 print("查找成功，该学生信息如下:")
-                print(stu)
-                break
+                return stu
         print(f"未找到学生ID为{stu_id}的学生,请确认后再查找！")
+        return None
 
 
     #查询所有学生信息
@@ -94,6 +94,25 @@ class StudentManager:
         for stu in self.stu_list:
             print(stu)
             print() #美观，加换行
+    #保存学生信息
+    def save_stu(self):
+        with open("./students/stu_info.txt",'w',encoding='utf-8')as dest_f:
+        # 把[学生对象，学生对象，学生对象]写入--->[字典,字典,字典]
+            dict_data=[stu.__dict__ for stu in self.stu_list]
+        # 9.3把字典列表写入文件
+            dest_f.write(str(dict_data))
+            print('学生信息保存成功！')
+
+    def load_stu_info(self):
+        with open('students/stu_info.txt','r',encoding='utf-8') as src_f:
+            stu_list=eval(src_f.read())     #'[字典,字典,字典]'-->[字典,字典,字典]
+            if len(stu_list)==0:
+                stu_list=[]
+            self.stu_list= [Student(**stu) for stu in self.stu_list]
+
+
+
+
 
     #删除某个学生信息
     def delete_student(self, student_name=None):
