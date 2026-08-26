@@ -34,7 +34,12 @@ class StudentManager:
 
     #添加学生信息
     def add_student(self):
-        student_id=input("请输入学生ID")
+        student_id=input("请输入学生ID").strip()
+        for stu in self.stu_list:
+            if student_id==str(stu.student_id):
+                print(f"学号 {student_id} 已存在，不能重复添加！")
+                return
+
         name=input("请输入学生姓名")
         gender=input("请输入学生性别")
         age=input("请输入学生年龄")
@@ -56,8 +61,11 @@ class StudentManager:
             if stu.name == student_name:
                 stu.gender = input('输入新的性别：')
                 stu.age = int(input('输入新的年龄：'))
+                stu.desc = input('输入新的班级信息：')
+                stu.desc = input('输入新的专业信息：')
                 stu.phone = input('输入新的手机号：')
-                stu.desc = input('输入新的描述信息：')
+                stu.phone = input('输入新的入学日期：')
+
                 print(f"学生{student_name}信息已修改")
                 break
             print(f"学生{student_name}未找到！")
@@ -67,11 +75,10 @@ class StudentManager:
     #查询单个学生信息
     def query_student(self):
         student_name = input("请输入要查询学生的姓名")
-
         for stu in self.stu_list:
             if stu.name == student_name:
                 print(stu)
-                break
+                return
         print(f"学生{student_name}未找到！")
 
     #根据学号找到学生，找不到就返回None

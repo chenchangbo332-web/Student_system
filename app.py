@@ -44,8 +44,9 @@ def main():
             elif input_num=='0':   #退出系统
                 x=input("确认要退出吗？Y/N")
                 if x=='Y':
-                    break
                     manager.save_stu()
+                    break
+
             else:
                 print("您输入的数字有误，请重新输入！")
 
