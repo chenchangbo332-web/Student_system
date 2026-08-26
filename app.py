@@ -18,28 +18,30 @@ def show_mean():
 
 def main():
         manager=StudentManager()
+        manager.load_stu_info()  # 加载学生信息
         while True:
+
             show_mean()
-            choice=input("请输入要操作的功能对应的数字")
-            if choice=="1":     #添加学生
+            input_num=input("请输入要操作的功能对应的数字")
+            if input_num=="1":     #添加学生
                 manager.add_student()
 
-            elif choice=='2':   #查询单个学生
+            elif input_num=='2':   #查询单个学生
                 manager.query_student()
 
-            elif choice=='3':   #查询所有学生信息
+            elif input_num=='3':   #查询所有学生信息
                 manager.search_all_student()
 
-            elif choice=='4':   #修改学生信息
+            elif input_num=='4':   #修改学生信息
                 manager.modify_student()
 
-            elif choice=='5':   #删除学生信息
+            elif input_num=='5':   #删除学生信息
                 manager.delete_student()
 
-            elif choice=='6':   #保存学生信息
+            elif input_num=='6':   #保存学生信息
                 manager.save_stu()
 
-            elif choice=='0':   #退出系统
+            elif input_num=='0':   #退出系统
                 x=input("确认要退出吗？Y/N")
                 if x=='Y':
                     break

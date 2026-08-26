@@ -103,12 +103,14 @@ class StudentManager:
             dest_f.write(str(dict_data))
             print('学生信息保存成功！')
 
+    #加载学生信息
     def load_stu_info(self):
         with open('students/stu_info.txt','r',encoding='utf-8') as src_f:
             stu_list=eval(src_f.read())     #'[字典,字典,字典]'-->[字典,字典,字典]
             if len(stu_list)==0:
                 stu_list=[]
-            self.stu_list= [Student(**stu) for stu in self.stu_list]
+            else:
+                self.stu_list= [Student(**stu) for stu in stu_list]
 
 
 
