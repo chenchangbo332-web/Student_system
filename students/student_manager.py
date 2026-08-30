@@ -3,7 +3,12 @@
 
 
 """
+
 from students.student import Student
+import json
+from database.db import get_connection
+
+
 
 
 class StudentManager:
@@ -40,16 +45,36 @@ class StudentManager:
                 print(f"学号 {student_id} 已存在，不能重复添加！")
                 return
 
-        name=input("请输入学生姓名")
-        gender=input("请输入学生性别")
-        age=input("请输入学生年龄")
-        class_name=input("请输入学生所属班级")
-        major=input("请输入学生专业")
-        phone=input("请输入学生电话")
-        enrollment_date=input("请输入学生入学日期")
-        stu=Student(student_id,name, gender,age,class_name,major,phone,enrollment_date)
-        self.stu_list.append(stu)
-        print(f"添加学生{name}成功")
+        name=input("请输入学生姓名").strip()
+        gender=input("请输入学生性别").strip()
+        try:
+            age=int(input("请输入学生年龄"))
+        except ValueError:
+            print("年龄必须输入数字！")
+            return
+        class_name=input("请输入学生所属班级").strip()
+        major=input("请输入学生专业").strip()
+        phone=input("请输入学生电话").strip()
+        enrollment_date=input("请输入学生入学日期").strip()
+
+        sql="""
+            insert into student(student_id,name,gender,age,class_id,major,phone,enrollment_data )
+            values (%s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        connection=get_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(sql,(student_id,name,gender,age,class_name,major,phone,enrollment_date))
+                connection.commit() #手动提交确认
+                print(f"学生{name}添加成功")
+
+        except Exception as error:
+            connection.rollback()
+            print("添加失败：",error)
+
+        finally:
+            connection.close()
+
 
 
     #修改学生信息
@@ -61,14 +86,13 @@ class StudentManager:
             if stu.name == student_name:
                 stu.gender = input('输入新的性别：')
                 stu.age = int(input('输入新的年龄：'))
-                stu.desc = input('输入新的班级信息：')
-                stu.desc = input('输入新的专业信息：')
+                stu.class_name = input('输入新的班级信息：')
+                stu.major = input('输入新的专业信息：')
                 stu.phone = input('输入新的手机号：')
-                stu.phone = input('输入新的入学日期：')
-
+                stu.enrollment_date= input('输入新的入学日期：')
                 print(f"学生{student_name}信息已修改")
-                break
-            print(f"学生{student_name}未找到！")
+                return
+        print(f"学生{student_name}未找到！")
 
 
 
@@ -84,7 +108,7 @@ class StudentManager:
     #根据学号找到学生，找不到就返回None
     def find_student_by_id(self, stu_id=None):
         if stu_id is None:
-            stu_id=input("请输入要查询的学生ID")
+            stu_id=input("请输入要查询的学生ID").strip()
 
         for stu in self.stu_list:
             if stu.student_id==stu_id:
@@ -101,27 +125,60 @@ class StudentManager:
         for stu in self.stu_list:
             print(stu)
             print() #美观，加换行
+
     #保存学生信息
     def save_stu(self):
-        with open("./students/stu_info.txt",'w',encoding='utf-8')as dest_f:
         # 把[学生对象，学生对象，学生对象]写入--->[字典,字典,字典]
-            dict_data=[stu.__dict__ for stu in self.stu_list]
-        # 9.3把字典列表写入文件
-            dest_f.write(str(dict_data))
-            print('学生信息保存成功！')
+        dict_data = [stu.__dict__ for stu in self.stu_list]
+        # 以写入模式打开 JSON 文件
+        # encoding="utf-8"：支持中文
+        with open("./data/students.json",'w',encoding='utf-8')as dest_f:
+        # 将字典列表写入 JSON 文件
+        # ensure_ascii=False：JSON 文件中正常显示中文
+        # indent=4：让 JSON 文件按 4 个空格缩进，更容易阅读
+            json.dump(
+                dict_data,
+                dest_f,
+                ensure_ascii=False,
+                indent=4
+            )
+        print("学生信息保存成功！")
 
     #加载学生信息
     def load_stu_info(self):
-        with open('students/stu_info.txt','r',encoding='utf-8') as src_f:
-            stu_list=eval(src_f.read())     #'[字典,字典,字典]'-->[字典,字典,字典]
-            if len(stu_list)==0:
-                stu_list=[]
-            else:
-                self.stu_list= [Student(**stu) for stu in stu_list]
+        try:
+            with open("./data/students.json", "r", encoding="utf-8") as src_f:
 
+                # 将 JSON 文件内容读取为 Python 列表
+                # 读取后类似：
+                # [
+                #     {"student_id": "20240001", "name": "张三", ...},
+                #     {"student_id": "20240002", "name": "李四", ...}
+                # ]
+                stu_list = json.load(src_f)
 
+            # 使用 **stu_data 将每个学生字典解包为关键字参数
+            # Student(**stu_data) 等价于：
+            # Student(
+            #     student_id=stu_data["student_id"],
+            #     name=stu_data["name"],
+            #     ...
+            # )
 
+            self.stu_list = [
+                Student(**stu_data)
+                for stu_data in stu_list
+            ]
 
+        except FileNotFoundError:
+            # 第一次运行时可能还没有 students.json 文件
+            # 此时保留 __init__ 中的默认学生数据
+            print("学生数据文件不存在，使用默认学生数据。")
+
+        except json.JSONDecodeError:
+            # JSON 格式错误时，避免程序直接崩溃
+            # 同样保留 __init__ 中的默认学生数据
+            print("学生数据文件格式错误，使用默认学生数据。")
 
     #删除某个学生信息
     def delete_student(self, student_name=None):
